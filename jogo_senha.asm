@@ -84,7 +84,12 @@ main:					addi	$v0, $zero, 4					# Chamada ao sistema para escrever string na te
 						jal	mostra_tabuleiro				# Desenha tabuleiro no display
 						jal	gera_senha						# Gera senha aleatoreamente 
 						# COMPLETAR
-
+						
+						jal le_chute #chama le chute
+						addi $a0, $zero, 0
+						jal mostra_chute
+						jal mostra_senha
+							
 						addi $v0, $zero,10					# Chamada ao sistema para encerrar programa
 						syscall
 #------------------------------------------------------------------------------
@@ -100,23 +105,30 @@ main:					addi	$v0, $zero, 4					# Chamada ao sistema para escrever string na te
 # Uso dos registradores:
 #		COMPLETAR
 
-gera_senha:	li $a1, 5 
-		li $v0, 42
-    		syscall
-    		add $t0, $a0, $zero
-conf1: 			syscall
-		beq $a0, $t0 conf1
-    		add $t1, $a0, $zero
-conf2:  		syscall
-		beq $a0, $t0, conf2
-		beq $a0, $t1, conf2
-    		add $t2, $a0, $zero
-    		#gravar senha no array senha COMPLETAR
-    			la $t4, senha
-			sw $t0, 0($t4)
-			sw $t1, 4($t4)
-			sw $t2, 8($t4)
-    		
+gera_senha:	
+						# Prólogo
+						addi	$sp, $sp, -4					# Aloca espaço para uma palavra na pilha
+						sw		$ra, 0 ($sp)					# Salva $ra (endereço de retorno da rotina) na pilha
+						# Inicialização
+						li $a1, 5 
+						li $v0, 42
+    					syscall
+    					add $t0, $a0, $zero
+conf1: 				syscall
+						beq $a0, $t0 conf1
+    					add $t1, $a0, $zero
+conf2:  				syscall
+						beq $a0, $t0, conf2
+						beq $a0, $t1, conf2
+    					add $t2, $a0, $zero
+    					#gravar senha no array senha COMPLETAR
+    					la $t4, senha
+						sw $t0, 0($t4)
+						sw $t1, 4($t4)
+						sw $t2, 8($t4)
+						# Epílogo
+						lw		$ra, 0 ($sp)					# Restaura $ra (endereço de retorno da rotina) da pilha
+						addi	$sp, $sp, 4						# Libera espaço de uma palavra na pilha	
 						jr		$ra								# Retorna da rotina
 #------------------------------------------------------------------------------
 # ROTINA le_chute
@@ -130,6 +142,25 @@ conf2:  		syscall
 #		COMPLETAR
 
 le_chute:			# COMPLETAR
+						# Prólogo
+						addi	$sp, $sp, -4					# Aloca espaço para uma palavra na pilha
+						sw		$ra, 0 ($sp)					# Salva $ra (endereço de retorno da rotina) na pilha
+						# Inicialização
+						la  $t1, chute # carrega em $t1 posicao inicial chute
+						add $t2, $zero, 0
+						lw  $t3, tam_senha ($zero)					
+loop_le_chute: 	slt  $t4, $t2, $t3         # Se i < n ent䯠$t5 = 1 sen䯠$t5 = 0
+          			beq  $t4, $zero, fim_loop_le_chute
+						addi $v0, $zero, 5 # le inteiro do teclado
+						syscall
+						sw   $v0, 0 ($t1)
+						addi $t1, $t1, 4
+						addi $t2, $t2, 1 
+						j loop_le_chute
+fim_loop_le_chute:
+						# Epílogo
+						lw		$ra, 0 ($sp)					# Restaura $ra (endereço de retorno da rotina) da pilha
+						addi	$sp, $sp, 4						# Libera espaço de uma palavra na pilha	
 						jr		$ra								# Retorna da rotina
 #------------------------------------------------------------------------------
 # ROTINA compara_chute_senha
@@ -444,10 +475,10 @@ mostra_pixel:		lw		$t9, n_colunas_display		# $t9 = número de colunas do display
 						.data										# Seção de dados
 #------------------------------------------------------------------------------
 						# Variáveis e estruturas de dados do programa
-						# COMPLETAR, SE NECESSÁRIO
+						# COMPLETAR, SE NECESSÿRIO
 max_tentativas:	.word 9									# Número máximo de tentativas
 tam_senha:			.word 3									# Número de posições na senha e no chute
-total_cores:			.word 5									# Número total de cores disponíveis para escolha da senha e do chute
+total_cores:		.word 5									# Número total de cores disponíveis para escolha da senha e do chute
 senha:				.word 0 0 0								# Senha: vetor de inteiros, com tam_senha posições
 chute:				.word 0 0 0								# Chute: vetor de inteiros, com tam_senha posições
 																	# Cada posição da senha e do chute possui um valor, entre 0 e total_cores - 1,
